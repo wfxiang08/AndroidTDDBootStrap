@@ -1,0 +1,97 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
+//apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'de.mobilej.unmock'
+apply plugin: 'com.ofg.uptodate'
+apply from: '../AndroidCodeQualityConfig/quality.gradle'
+
+def isTravis = "true".equals(System.getenv("TRAVIS"))
+def preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
+
+android {
+    compileSdkVersion rootProject.ext.androidCompileSdkVersion
+    buildToolsVersion rootProject.ext.androidBuildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.androidMinSdkVersion
+        targetSdkVersion rootProject.ext.androidTargetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        multiDexEnabled true
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    dexOptions {
+        // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
+        preDexLibraries = false
+        javaMaxHeapSize "4g"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'META-INF/maven/com.google.dagger/dagger/pom.properties'
+        exclude 'META-INF/maven/com.google.dagger/dagger/pom.xml'
+    }
+
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+            outputs.upToDateWhen { false }
+            showStandardStreams = true
+        }
+    }
+}
+
+unMock {
+    // URI to download the android-all.jar from. e.g. https://oss.sonatype
+    // .org/content/groups/public/org/robolectric/android-all/
+    downloadFrom 'https://oss.sonatype.org/content/groups/public/org/robolectric/android-all/4' +
+            '.3_r2-robolectric-0/android-all-4.3_r2-robolectric-0.jar'
+
+    keep "android.text.TextUtils"
+}
+
+dependencies {
+    def modelDependencies = rootProject.ext.modelDependencies
+    def modelTestDependencies = rootProject.ext.modelTestDependencies
+
+    compile project(':base')
+    compile modelDependencies.multiDex
+
+    compile(modelDependencies.fabricCrashlytics) {
+        transitive = true
+    }
+
+    apt modelDependencies.daggerCompiler
+    apt modelDependencies.autoParcelProcessor
+    apt modelDependencies.storIOSQLiteAnnotationProcessor
+
+    // Developer
+    //retrolambdaConfig modelDependencies.retrolambda
+
+    testCompile project(':testbase')
+    testCompile modelTestDependencies.mockito
+    testCompile modelTestDependencies.junit
+    testCompile modelTestDependencies.jsonAssert
+
+    androidTestCompile project(':testbase')
+    androidTestCompile modelTestDependencies.multidexInstrumentation
+    androidTestCompile (modelTestDependencies.androidJUnitRunner) {
+        exclude module: 'support-annotations'
+    }
+}

@@ -1,0 +1,17 @@
+ext {
+
+    basePackageName = 'com.github.piasy.template'
+
+    develop = [
+            packageName: "${basePackageName}.dev",
+            versionName: "1.0.0",
+            versionCode: 1
+    ]
+
+    product = [
+            packageName: "${basePackageName}",
+            versionName: "1.0.0",
+            versionCode: 1
+    ]
+
+}

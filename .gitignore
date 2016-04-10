@@ -1,0 +1,32 @@
+.DS_Store
+
+# Android studio project file
+AndroidTDDBootStrap.iml
+app/app.iml
+model/model.iml
+# Gradle files
+/.gradle/
+/build/
+
+# idea folder
+/.idea/
+
+# Local configuration file (sdk path, etc)
+/local.properties
+
+# Fabric appSecrit
+fabric.properties
+
+# inspect
+.buildProfile/
+
+# buck & OkBuck
+/buck-out/
+/.buckd/
+/.okbuck/
+/okbuck-scripts/
+*/BUCK
+.buckconfig
+
+.buckconfig
+**/BUCK
